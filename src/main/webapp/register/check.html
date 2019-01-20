@@ -1,0 +1,120 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v3.8.5">
+  <title>Signin FHEM Connector</title>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+  <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+  <!-- Custom styles for this template -->
+  <link href="signin.css" rel="stylesheet">
+  <script type="text/javascript">
+    function setElement(id, text, c) {
+       document.getElementById(id).innerHTML = text;
+       document.getElementById(id).style.color = c;
+    }
+
+    function checkstatus() {
+      var req = new XMLHttpRequest();
+      req.onreadystatechange = function() {
+          if (this.readyState === 4 && this.status === 200) {
+              var btnAct = document.getElementById('activate');
+              var btnRtr = document.getElementById('retrybtn');
+              var r = JSON.parse(this.responseText);
+              if (! r.userstatus) {
+                  setElement ("statKey", "Your key was not correct.", "red");
+                  setElement ("statSSH", "-", "brown");
+                  setElement ("statNode", "-", "brown");
+                  setElement ("statHttp", "-", "brown");
+                  setElement ("statFhem", "-", "brown");
+		  document.getElementById('retry').action="index.html";
+                  btnAct.disabled = true;
+              } else {
+		  document.getElementById('retry').action="check.html";
+                  setElement ("statKey", "Good Key", "green");
+                  btnAct.disabled = false;
+                  btnAct.className = btnAct.className.replace(/\bdisabled\b/g, "");
+		  //btn['onclick'] = 'document.location.href="/register/api/passcode";return false;';
+                  if (! r.userstatus.online) {
+                    setElement ("statSSH", "NOT online - no SSH session established", "brown");
+                    setElement ("statNode", "-", "brown");
+                    setElement ("statHttp", "-", "brown");
+                    setElement ("statFhem", "-", "brown");
+                  } else {
+                    setElement ("statSSH", "Online - SSH socket is " + r.userstatus.remoteAddress.substring(1), "green");
+                    if (! r.userstatus.withForwarder) {
+                      setElement ("statNode", "No reverse tunnel - did you forget -R 1234:localhost:3000 with SSH?", "red");
+                      setElement ("statHttp", "-", "brown");
+                      setElement ("statFhem", "-", "brown");
+                    } else {
+                      setElement ("statNode", "Reverse tunnel up", "green");
+                      if (! r.nodejs) {
+                        setElement ("statHttp", "Test failed", "red");
+                      } else {
+                        if (r.nodejs.status === "ok") {
+                           setElement ("statHttp", "Test passed - HTTP status " + r.nodejs['http-status'], "green");
+                           if (r.nodejs.jsonBody ) {
+                              try {
+                                var s = r.nodejs.jsonBody.event.payload.endpoints.length;
+                                setElement ("statFhem", "Passed - found " + s + " visible devices", "green");
+                  		btnAct.className = btnAct.className.replace(/\bbtn-secondary\b/g, "") + ' btn-primary';
+                  		btnRtr.className = btnRtr.className.replace(/\bbtn-primary\b/g, "") + 'btn-secondary';
+                              } catch (e) {
+                                setElement ("statFhem", "AutoDiscovery failed, response: " +
+                                  JSON.stringify(r.nodejs.jsonBody), "red");
+                              }
+                           } else {
+                              setElement ("statFhem", "No JSON response", "red");
+                           }
+                        } else {
+                           setElement ("statHttp", "Test failed: " + r.nodejs.status +
+                                (r.nodejs.exception ? ("(Exeception " + r.nodejs.exception + ")") : ""), "red");
+                        }
+                      }
+                    }
+                  }
+              }
+          }
+      };
+      req.open("GET", "/register/api/checknodejs", true);
+      req.send();
+    }
+
+  </script>
+</head>
+<body class="text-center" onload="checkstatus();">
+<form class="form-signin" action="check.html" method="post" id="retry">
+  <img class="mb-4" src="fhemhouse.png" alt="" width="120" height="115">
+  <h1 class="h3 mb-3 font-weight-normal">Checking your key:</h1>
+  <div class="mb-3 container">Status ActivationKey: <code id="statKey">testing ...</code></div>
+  <h1 class="h3 mb-3 font-weight-normal">Checking connection status:</h1>
+  <div class="mb-3 container">Status SSH: <code id="statSSH">testing ...</code></div>
+  <div class="mb-3 container">Status Reverse-Portmapping: <code id="statNode">testing ...</code></div>
+  <div class="mb-3 container">Status nodejs-Connectivity: <code id="statHttp">testing ...</code></div>
+  <div class="mb-3 container">Status nodejs-Interaction: <code id="statFhem">testing ...</code></div>
+  <div class="checkbox mb-3">
+  </div>
+  <button id='retrybtn' class="btn btn-lg btn-primary" type="submit">Retry</button>
+  <button id='activate' class="btn btn-lg btn-secondary disabled" type="cancel" disabled onclick='document.location.href="/register/api/passcode";return false;'>Activate Skill</button>
+  <p class="mt-5 mb-3 text-muted">&copy; 2019</p>
+  </form>
+</body>
+</html>

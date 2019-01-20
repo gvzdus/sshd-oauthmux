@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/backendbox">
+
+<!--
+  <Parameter name="configDir" value="/opt/web/tomcat/webmini/conf/betterbox"/>
+  <Resource name="jdbc/idb" auth="Application" type="javax.sql.DataSource" factory="de.vodafone.util.sql.PooledDataSourceFactory"/>
+-->
+
+</Context>

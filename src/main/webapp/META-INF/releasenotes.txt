@@ -1,0 +1,310 @@
+6.1.0  [Tag:BLD_BBX_BUGFIX20140702_BRANCH_20140814]
+# Production Ticket
+N_PRM00417142A/BALSERVICEENABLERPROBLEM-19
+
+6.0.2 [Tag:RFA_BLD_BBX_20140519]
+	Merge from HEAD To RMS_EU_REG_2014 (to include RMS 129126 Roaming Proposition)
+
+6.0.1 [Tag:ST_BLD_BBX_20140416]
+JIRA Ticket :
+#BALCONSUMERPORTALSPROBLEM-480:	
+	Add isARPactive for CCC,VFSS & CYCC services in config.xml
+		<output name='isARPactive'>
+			<matches source='ur' key='vfmmoARP' pattern='^.+$' />
+		</output>  
+
+6.0.0 [Tag:ST_BLD_BBX_20140331_125092]
+Merge from RMS121872_LTE_PCR03 To RMS_EU_REG_2014
+
+5.0.7 [Tag:ST_BLD_BBX_20140514]
+#JIRA Tickets : 
+BALCONSUMERPORTALSPROBLEM-530 
+
+5.0.6 [Tag:ST_BLD_BBX_20140512]
+VF Review Comments
+
+5.0.5 [Tag:ST_BLD_BBX_20140508]
+#JIRA Tickets : 
+BALCONSUMERPORTALSPROBLEM-530
+
+5.0.4 [Tag:ST_BLD_BBX_20140506]
+#JIRA Tickets : 
+BALCONSUMERPORTALSPROBLEM-522
+BALCONSUMERPORTALSPROBLEM-523
+BALCONSUMERPORTALSPROBLEM-526
+BALCONSUMERPORTALSPROBLEM-527
+5.0.3 [Tag:ST_BLD_BBX_20140503]
+#JIRA Tickets : BALCONSUMERPORTALSPROBLEM-492 (update to the fix)
+
+5.0.2 [Tag:ST_BLD_BBX_20140430]
+#JIRA Tickets : BALCONSUMERPORTALSPROBLEM-492
+
+5.0.1 [Tag:ST_BLD_BBX_20140428]
+		merge from HEAD after Jan release go production
+	
+5.0.0 [Tag:ST_BLD_BBX_20140331]
+	RMS 129126 Roaming Proposition 2014 TYHTA
+	
+4.0.0 [Tag:ST_BLD_BBX_20140222]
+RMS_EU_REG_2014
+	config.xml.prod
+	TestARPactiveAdded.java
+
+3.0.5 RMS 132622 - field 'vfplan' from UR LDAP
+Only config changes in 
+
+ - config.xml.prod
+ - config.xml.std
+ 
+ See VFSS service section. 
+
+3.0.4 RFA delivery [Tag:RFA_BLD_BBX_20140313]
+
+Jira ticket :
+BALCONSUMERPORTALSPROBLEM-402
+
+Drop1-Issue#6.BBX keine application.properties (nur config.xml) geliefert
+
+3.0.3 RFA delivery [Tag:ST_BLD_BBX_20140223]
+3.0.2 [Tag:ST_BLD_BBX_20140212]
+#JIRA Tickets
+		http://ipm.vfeds.local:8080/jira/browse/BALCONSUMERPORTALSPROBLEM-361
+changes in config.xml: 
+	-service="ccc" : language property changed to :
+	         <output name='language'>
+					<echo source='ur' key='vfuilang' />
+			 </output>
+3.0.1 [Tag:ST_BLD_BBX_20140128]
+Fix comments#31,33,34
+
+Changed Java files : 
+	- PartnerService.java
+	- BBServlet.java
+Changed Configurations files:
+	- config.xml.prod
+	"easybox" partener service is changed.
+
+3.0.0
+#RMS 122416_Software Development for Project IP Future Network.
+Changed files 
+	config.xml.prod
+	PartnerService.java
+	BBServlet.java
+	XMLConfig.java
+mallam:
+	new property for vfcenter & ccc services:imsi
+RMS125237_SMS_NOTIFICATION	
+
+2.7.6 
+-adding imsi for  VFSS & CYCC
+-New source (subscribers) is defined so that noOfSubscribers
+(no of msisdns associated for customer ) is returned to VFSS
+-Please Note that host & port for the new source subscribers
+need to be updated with the server which will be used for UR-LDAP.
+
+-new property for vfcenter & ccc services:imsi
+
+2.7.5.4
+mallam:
+-fix for Quality Center defect#12:
+Changed files: 
+	config.xml.prod
+	XMLConfig.java
+	OutputProperty.java
+New file:
+	ScriptUtil.java
+	
+2.7.5.3
+mallam:
+-fix for Quality Center defect#11:
+changed files : 
+application.properties.prod
+config.xml.prod
+CCCSource.java
+2.7.5.2.2:
+mallam:
+-fix for Quality Center(project:LTE):defects #10 & #11
+
+2.7.5.2.1:
+mallam:
+-change in the config.xml for the billcycle in ccc & vfcenter services
+
+2.7.5.2:
+mallam :
+Issue related to LTE_PCR02.(expression need to be evaluated in a condition"ur.subscriberbillcycle")
+Files affected: 
+	-Condition.java
+	-XMLConfig.java
+	-config.xml
+
+2.7.5.1:
+Quality Center(project:LTE):Ticket#2
+
+2.7.5:
+mallam:
+		- Merge HEAD with LTE Main 
+		- A new service "easybox"(RMS 118538 "LTE Main"). Input-Parameter is the IP-Address.
+			The output should be JSON-formatted and contains throttling information 
+			that can be retrieved from CCC.
+		-changes for "LTE PCR01: RMS 118045" &"LTE PCR02: RMS 117079"
+
+files created(RMS 118538 "LTE Main"):
+-CCC Source.java(retrieving throttling info from CCC)
+
+files changed(RMS 118538,RMS 118045 & RMS 117079):
+-config.xml(adding new service easybox service)
+
+2.7.4:
+  msalinger: - Fix for ticket N_PRT00043749A001: ndcPattern-incompatibility
+             - Fix for ticket N_PRT00043940A001: synchronization issue
+             - Changed QuickCheckSource.java for RMS 114057 Simplified Lifecycle Data
+  sghonaim:  - Fix for ticket N_PRT00041401A in QuickCheckSource.java
+
+
+2.7.3:
+  sghonaim:- Fix for ticket N_PRT00041401A in QuickCheckSource.java
+
+2.7.2:
+  msalinger: - Changed QuickCheckSource.java for RMS 114057 Simplified Lifecycle Data
+
+2.7.1:
+  msalinger: - Fixed: Using removeAll() now instead of remove() when filtering CSM32 rows
+	         - BBX can be initiated without a Jolt configuration (usable for DashBoard)
+             - Limit for concurrent threads to Jolt Queries
+             - Limit for concurrent threads to EAI Queries
+             - meaning of quickcheck.quickcheck_dbconfig_reload_interval changed:
+               Now "reload config on each n.th request" meaning (instead of ms).
+             - prefix "quickcheck." for quickcheck configuration items
+             - Configurable: Pattern for valid IP addresses: "ip_address_pattern"
+             - Configurable: Pattern for Jolt QC "RESPONSE_CD" response codes:
+               quickcheck.responseCdValidPattern
+
+2.7.0:
+  msalinger: - RMS 109351: Package-ID/BBB filter is now applied for the following variants. The settings must be updated
+               like this:
+               # Pattern for package ids to exclude from JOLT quickcheck if BBB does NOT return "national" or "zuhause" entitlements
+               packageIdExcludePatternBBBLegacy=^(151|152|196|197|198|199|217|239|240|241|243|244|245|248|251|252|253|262|263|264|265|266|267|268)$
+               # Pattern for BBB entitlement names to exclude from JOLT quickcheck if BBB does NOT return "national" or "zuhause" entitlements
+               entitlementNameExcludePatternBBBLegacy=(?i)^(BBB|UMTSV6|Standard02|Just384)$
+               # Pattern for package ids to exclude from JOLT quickcheck if BBB returns "national" or "zuhause" entitlements
+               packageIdExcludePattern=^(151|152|170|196|197|198|199|210|217|235|236|237|238|239|240|241|243|244|245|248|251|252|253|262|263|264|265|266|267|268|269|270|271|272|273|274|275)$
+               # Pattern for BBB entitlement names to exclude from JOLT quickcheck if BBB returns "national" or "zuhause" entitlements
+               #entitlementNameExcludePattern=
+
+2.6.3:
+  mruedrich: - Fixed TTWOS Ticket N_SRM12743089A: Package-ID wrongly set to Package-Group
+
+2.6.2:
+  mruedrich: - Fixed TTWOS Ticket N_INM00759526A: Bug in byte to mb conversion
+
+2.6.1
+(2012-05-07)
+  mruedrich: - Fixed RMS 108116 / Vodafone DE / Smart Winning Nutzungsmonitor: Hotfix für Backendbox (QuickCheck)
+  mruedrich: - Fixed TTWOS Tickets N_PRM00402948A001, N_PRM00402959A001
+  mruedrich: - Fixed AvsValidator: pin comparison buggy
+  mruedrich: - Fixed QuickcheckSource: no auto-startup of JoltPool on configuration load
+  mruedrich: - Fixed unconfigurable entitlement-name blacklist
+
+2.6.0
+(2012-02-03)
+  INTERNAL+EXTERNAL
+  nsowen    : - Modularization of Source objects, so they can be loaded externally by reflection.
+                BackendBox-API provides a set of interface that can be used to created a new
+                Source-JAR.
+  nsowen/gvz: - Major refactoring and performance improvements. Introduced "AnyValue" instead
+                of List<String> to be the result object type for all requests.
+  nsowen    : - Create QuickCheckSource
+  nsowen    : - Updated to utilities-2.5.0.jar
+
+2.5.3
+(2011-10-27)
+  INTERNAL
+  N_PRM00399957A001:
+  nsowen: - fixed another concurrency problem in Query: when key is compared with currently running
+            keys, parameter map needs to be copied instead of being shared by all calling threads.
+
+
+2.5.2
+(2011-10-18)
+  INTERNAL
+  N_PRM00399801A:
+  nsowen: - fixed concurrency problem in query caching. Removed the following keys
+            cache.variables.type = null
+            cache.result.type = null
+            cache.query.type = null
+          - fixed concurrency problem in inputParameter-map
+          - testing (e.g. from ademwber using charging01 BACKENDBOX-instance):
+  				/opt/web/apache/current/bin/ab -c 150 -n 20000 "http://localhost:5032/backendbox/ipinfo.jsp?msisdn=491620490203"
+  			Versions >= 2.4.0 will cause randomly NullPointerExceptions and ConcurrentModificationExceptions
+  			Version 2.5.2 will serve all requests in an appropriate time without any errors.
+
+2.5.1
+(2011-10-17)
+  INTERNAL
+  nsowen: - fixed possible NullPointerException if date results are not set in EAI response
+
+2.5.0
+(2011-10-05)
+  INTERNAL
+  PPM-55194 (Vodafone Discover)
+  nsowen: - added ECGSource for ECG queries for "Vodafone Discover"
+  nsowen: - added EAISource internal caching
+  nsowen: - added various cache configuration settings to application.properties (cache.*)
+
+2.4.0
+(2011-07-22)
+  INTERNAL
+  nsowen: - changed for Java 6 and Tomcat 6 <<<<<<< NOTICE
+  nsowen: - updated utilities and vf_log_conf
+  nsowen: - added StaticSource for static parameter mapping
+  nsowen: - added new "dump_output" switch for debugging reasons
+  ts: - fixed LDAP pooling which caused dead connections to jam local pools and remote servers
+      - LDAP pools now use only as many connections as required; formerly they kept connections in use
+        as long as possible
+      - fixed query plan caching (synchronization issues and data duplication) due to incomplete abstraction
+      - made objects serializable again, thus preparing cluster support which will soon be requested
+      - updated utilities library to 1.19 which basically is a backport of 2.1 with several features required
+        for clustering
+      - replaced query plan hashmap by configurable cache
+      - added quite a lot to-do hints due to unused declaration; we'll have to verify them soon to prevent bugs
+      - renamed EmptySource (misleading) to ExampleSource
+      - added annotations as analysis-hints for IDEs
+  EXTERNAL
+  nsowen: - changed for Java 6 and Tomcat 6 <<<<<<< NOTICE
+  nsowen: - updated utilities and vf_log_conf
+  StFr: - Updated config files from production and added comments to them
+
+2.3.0
+2010-07-01 (production launch date liveapp01/02)
+  INTERNAL:
+  - Reduction of concurrent (mostly blocking) thread creation
+  - Internal abstraction between QueryPlanElements (structure of a query) and Queries
+    (concrete instances with parameters)
+  - Query plan caching
+  - LDAP statistics (requests, connections, response times)
+  - Shared LDAP connection pools between LDAP sources with same authentication and
+    host/port
+  - Reduced creation of new Lists and Sets in the course of query processing
+  EXTERNAL:
+  - New Source: AVSValidator to validate a provided parameter 'pin' against the
+    AVS LDAP source, count wrong attempts and trigger locking the pin
+  - Modified Source: LDAPSource can now be used as authenticator (try to bind with
+    provided DN and password) by using variables in the username/password attributes
+  - Output format of "classic" properties backward compatible to 1.5
+  - Virtual AAA source available again (like in 1.5)
+  - best effort tolerance to 1.5 config files
+
+2.0.2
+2010-02-26
+  - new "handle_errors" flag in XML config for EAISource
+  - EAI access
+
+2.0.1
+2010-01-19
+  - fixed problems with superfluous chain source requests due to superior conditions not being fulfilled
+  - some threading issues fixed
+  - some caching issues fixed
+
+2.0.0
+2010-01-15
+ initial release based on old BB 1.5

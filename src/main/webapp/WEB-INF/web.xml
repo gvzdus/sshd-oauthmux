@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+     version="3.0">
+
+    <listener>
+        <listener-class>de.garnix.sshoauthmux.StartStop</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>ParameterSetting</filter-name>
+        <filter-class>de.garnix.sshoauthmux.ParameterServletFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ParameterSetting</filter-name>
+        <url-pattern>/register/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>AlexaCommand</servlet-name>
+        <servlet-class>de.garnix.sshoauthmux.AlexaCommandServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>RegistrationApi</servlet-name>
+        <servlet-class>de.garnix.sshoauthmux.RegistrationApiServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>OAuthToken</servlet-name>
+        <servlet-class>de.garnix.sshoauthmux.OAuthTokenServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>OAuthProxy</servlet-name>
+        <servlet-class>de.garnix.sshoauthmux.OAuthProxyServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>AlexaCommand</servlet-name>
+        <url-pattern>/alexa</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet-mapping>
+        <servlet-name>RegistrationApi</servlet-name>
+        <url-pattern>/register/api/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>OAuthProxy</servlet-name>
+        <url-pattern>/proxy/oauth</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>OAuthToken</servlet-name>
+        <url-pattern>/oauth/token</url-pattern>
+    </servlet-mapping>
+
+
+</web-app>

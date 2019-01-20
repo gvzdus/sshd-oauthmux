@@ -1,0 +1,65 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v3.8.5">
+    <title>Signin FHEM Connector</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <script type="text/javascript">
+      function validateForm() {
+        var x = document.forms["kform"]["authkey"].value;
+        x = x.trim();
+        var okay = true;
+        var displayInput = false;
+        var query = document.forms["kform"]["authkey"].type==='password' ?
+                function (a) { return confirm(a + "\nShall I display the password field?") } : function (a) { alert(a); return true;};
+        document.forms["kform"]["authkey"].value = x;
+        if (x.match("[^A-Fa-f0-9-]")) {
+          displayInput = query("The key must consist only of A-F and 0-9 characters, seperated by 2 '-' signs.");
+          okay = false;
+        } else if (! x.match("^[0-9a-fA-F]{3,8}-[0-9a-fA-F]{13,16}-[0-9a-fA-F]{13,16}$")) {
+          displayInput = query("The key should look like this: ABCDEF12-ABCD...FE-ABCD...ER");
+          okay = false;
+        }
+        if (displayInput)
+          document.forms["kform"]["authkey"].type = "text";
+        return okay;
+      }
+    </script>
+    <!-- Custom styles for this template -->
+    <link href="signin.css" rel="stylesheet">
+  </head>
+  <body class="text-center">
+    <form class="form-signin" method="post" id="kform" name="kform" action="check.html" onsubmit="return validateForm()">
+  <img class="mb-4" src="fhemhouse.png" alt="" width="120" height="115">
+  <h1 class="h3 mb-3 font-weight-normal"></h1>
+  <div class="mb-3 font-weight-normal">You should find it in FHEM in the Alexa-device, type e.g. "get alexa proxyKey"</div>
+  <div class="mb-3 font-weight-normal">No clue? Please read the <a href="https://wiki.fhem.de/wiki/FHEM_Connector" target="_blank" rel="noreferrer">Wiki-Page</a></div>
+  <label for="authkey" class="sr-only">Key</label>
+  <input type="password" name="authkey" id="authkey" class="form-control" placeholder="ABC123-0123456789ABCDEF-0123456789ABCDEF" required autofocus>
+  <div class="checkbox mb-3">
+  </div>
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Check it!</button>
+  <p class="mt-5 mb-3 text-muted">&copy; 2019</p>
+</form>
+</body>
+</html>
