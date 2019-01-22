@@ -80,26 +80,21 @@ class Server {
 
 		@Override
 		public boolean canForwardX11(Session session, String requestType) {
-			System.out.println ("canForwardX11?");
 			return false;
 		}
 
 		@Override
 		public boolean canForwardAgent(Session session, String requestType) {
-			System.out.println ("canForwardAgent?");
 			return false;
 		}
 
 		@Override
 		public boolean canListen(SshdSocketAddress address, Session session) {
-			logger.info ("canListen? host=" + address.getHostName() + " toAddress=" + address.toInetSocketAddress());
-			System.out.println (byteDumper(session.getSessionId()));
 			return true;
 		}
 
 		@Override
 		public boolean canConnect(Type type, SshdSocketAddress address, Session session) {
-			System.out.println ("canConnect?");
 			return false;
 		}
 	}

@@ -1,0 +1,27 @@
+- tomcat und redis müssen installiert sein
+
+- In /etc/defaults/tomcat8:
+  JAVA_OPTS="-Djava.awt.headless=true -Xmx256m -verbose:gc -XX:+UseConcMarkSweepGC -Dlog4j.configuration=file:///etc/sshd-oauthmux/log4j.xml"
+
+- In /etc/init.d/tomcat8:
+  Beim start)-Block (aktuell ab Zeile 187) die Anzahl der Filedescriptoren erhöhen:
+  
+ulimit -Hn 29000
+ulimit -Sn 29000
+
+- Application-spezifische Settings sind unter ls -l /etc/sshd-oauthmux/
+  -rw-r--r-- 1 root root 1176 Jan 20 14:33 application.properties
+  -rw-r--r-- 1 root root 1933 Jan  1 08:17 hostkey.ser
+  -rw-r--r-- 1 root root  755 Jan  2 09:03 log4j.xml
+  hostkey.ser: Sehr wichtig: PublicKey des Servers, sonst fremdeln alle Clients!
+
+- Optimierungen am schlechten Tomcat-Logging:
+  /etc/tomcat8/server.xml
+
+- Binary itself: /var/lib/tomcat8/webapps/ROOT.war
+
+- Redis-Datenbank: /var/lib/redis/dump.rdb 
+  Sehr wichtig: Hier sind die PublicKeys der Clients enthalten. Ohne die Datenbank erhalten
+  alle Clients: "Unregistered" und müssen sich neu registrieren.
+
+
