@@ -54,7 +54,7 @@ public class StartStop implements ServletContextListener {
 				public void run() {
 					while (! Thread.interrupted()) {
 						try {
-							Thread.sleep(1000);
+							Thread.sleep(3000);
 						} catch (InterruptedException ioe) {
 							break;
 						}

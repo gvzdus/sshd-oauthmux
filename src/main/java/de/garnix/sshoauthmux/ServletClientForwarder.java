@@ -1,5 +1,6 @@
 package de.garnix.sshoauthmux;
 
+import org.apache.sshd.client.channel.ClientChannelPendingMessagesQueue;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.FactoryManager;
 import org.apache.sshd.common.RuntimeSshException;
@@ -55,6 +56,7 @@ class ServletClientForwarder extends org.apache.sshd.common.forward.DefaultForwa
 			if (log.isDebugEnabled())
 				log.debug ("On localPortForwardingRequested, registered handler in session " + session.hashCode());
 			putSession(omi, true);
+			omi.freeChannel = ServletClientChannel.openNewChannel(omi);
 		} else {
 			log.warn ("On localPortForwardingRequested, did not find the session " + session);
 		}

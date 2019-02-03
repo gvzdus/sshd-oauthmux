@@ -2,6 +2,7 @@ package de.garnix.sshoauthmux;
 
 import org.apache.sshd.common.channel.Channel;
 import org.apache.sshd.common.channel.ChannelListener;
+import org.apache.sshd.common.random.Random;
 import org.apache.sshd.common.session.ConnectionService;
 import org.apache.sshd.common.session.Session;
 import org.apache.sshd.common.util.buffer.Buffer;
@@ -96,7 +97,6 @@ public class RegistrationApiServlet extends HttpServlet {
 	}
 
 	private static Map testServer(SshClientConnectInfo info, HttpServletRequest request, String key)  {
-		PipedInputStream pi = new PipedInputStream(102400);
 		Session session = info.session;
 		HashMap<String,Object> result = new HashMap<>(2);
 		String status = "ok";
@@ -104,21 +104,8 @@ public class RegistrationApiServlet extends HttpServlet {
 
 		try {
 			final ConnectionService service = info.forwarder().getConnectionService();
-			ServletClientChannel channel = new ServletClientChannel(pi,
-					new SshdSocketAddress(request.getRemoteAddr(), request.getRemotePort()), info);
+			ServletClientChannel channel = ServletClientChannel.openNewChannel(info);
 
-			service.registerChannel(channel);
-			channel.open().addListener(future -> {
-				Throwable t = future.getException();
-				if (t != null) {
-					logger.warn("Failed ({}) to open channel for session={}: {}",
-							t.getClass().getSimpleName(), session.toString(), t.getMessage());
-					logger.debug("sessionCreated(" + session + ") channel=" + channel + " open failure details", t);
-					service.unregisterChannel(channel);
-					// Bad?
-					// channel.close(false);
-				}
-			});
 			String bearerToken = keySplit.length==3 ? keySplit[0] + '-' + keySplit[2] : "none";
 			String postBody =
 					"{\"directive\":{" +
@@ -137,19 +124,10 @@ public class RegistrationApiServlet extends HttpServlet {
 			byte[] b = (postHeader + postBody).getBytes();
 
 			Buffer buffer = new ByteArrayBuffer(b);
+			PipedInputStream pi = new PipedInputStream(102400);
+			channel.setPipedInputStream(pi);
 			info.forwarder.messageReceived(info, channel, buffer);
-			channel.addChannelListener(new ChannelListener() {
-				@Override
-				public void channelStateChanged(Channel genericChannel, String hint) {
-					// logger.info("HINT HINT HINT HINT HINT " + hint);
-					if ("SSH_MSG_CHANNEL_EOF".equals(hint))
-						try {
-							channel.close(false);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-				}
-			});
+
 			byte[] buf = new byte[16384];
 			int avail;
 			avail = pi.read(buf);

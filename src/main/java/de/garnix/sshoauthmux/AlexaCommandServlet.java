@@ -1,13 +1,9 @@
 package de.garnix.sshoauthmux;
 
 import org.aeonbits.owner.ConfigFactory;
-import org.apache.sshd.common.channel.Channel;
-import org.apache.sshd.common.channel.ChannelListener;
-import org.apache.sshd.common.session.ConnectionService;
 import org.apache.sshd.common.session.Session;
 import org.apache.sshd.common.util.buffer.Buffer;
 import org.apache.sshd.common.util.buffer.ByteArrayBuffer;
-import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,16 +60,79 @@ public class AlexaCommandServlet extends HttpServlet {
 		}
 
 		try {
-			PipedInputStream pi = triggerRequest(info, request);
-			parseResponse(pi, response, start);
+			triggerRequest(info, request, response, start);
 		} catch (Exception e) {
 			logger.warn ("Exception raised: " + e.getMessage(), e);
 		}
 	}
 
-	private static void parseResponse(PipedInputStream pi, HttpServletResponse response, long start) throws Exception {
+	private static String getLine(ByteArrayBuffer bb) {
+		StringBuilder sb = new StringBuilder();
+		while (bb.available()>0) {
+			char c = (char) (bb.getByte() & 0xff);
+			if (c == '\r') continue;
+			if (c == '\n') break;
+			sb.append(c);
+		}
+		return sb.toString();
+	}
+
+	private static void triggerRequest(SshClientConnectInfo info, HttpServletRequest request, HttpServletResponse response, long start) throws Exception {
+		String path = "/";
+
+		StringBuilder sb = new StringBuilder(request.getMethod() + " ");
+		sb.append(path).append(" HTTP/1.1\r\n");
+		sb.append("Host: localhost\r\n");
+		sb.append("Connection: close\r\n");
+		Enumeration<String> hnEnum = request.getHeaderNames();
+		while (hnEnum.hasMoreElements()) {
+			String hn = hnEnum.nextElement();
+			String hnv = request.getHeader(hn);
+			if (hn.equals("User-Agent") || hn.equals("Accept") || hn.equals("Lang") || hn.equals("Content-Type"))
+				sb.append(hn).append(": ").append(hnv).append("\r\n");
+		}
+
+		byte[] body = null;
+		if (request.getMethod().equalsIgnoreCase("POST")) {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			InputStream is = request.getInputStream();
+			byte buf[] = new byte[32768];
+			int read;
+			while ((read = is.read(buf))>0)
+				baos.write(buf, 0, read);
+			body = baos.toByteArray();
+			sb.append("Content-Length: ").append(body.length).append("\r\n");
+		}
+		sb.append("\r\n");
+
+		Session session = info.session;
+		ServletClientChannel channel;
+		if (logger.isDebugEnabled())
+			logger.debug ("info.activeChannel=" + info.freeChannel);
+		synchronized (info) {
+			if (info.freeChannel != null && !(info.freeChannel.isClosing() || info.freeChannel.isClosed())) {
+				channel = info.freeChannel;
+				info.freeChannel = null; // it is in use now
+			} else
+				channel = ServletClientChannel.openNewChannel(info);
+		}
+		byte[] b1;
+		if (body == null) {
+			b1 = sb.toString().getBytes();
+		} else {
+			b1 = sb.toString().getBytes();
+			b1 = ByteBuffer.allocate(b1.length + body.length).put(b1).put(body).array();
+		}
+
+		Buffer buffer = new ByteArrayBuffer(b1);
+		PipedInputStream pi = new PipedInputStream(102400);
+		channel.setPipedInputStream(pi);
+		info.forwarder.messageReceived(info, channel, buffer);
+
+
 		byte[] buf = new byte[16384];
 		int avail;
+		Long cl = null;
 		avail = pi.read(buf);
 		ByteArrayBuffer bb = new ByteArrayBuffer(buf);
 
@@ -98,101 +157,46 @@ public class AlexaCommandServlet extends HttpServlet {
 			if (! ln.startsWith(" ")) {
 				i = ln.indexOf(':');
 				String hn = ln.substring(0, i);
+				String hnl = hn.toLowerCase();
 				ln = ln.substring(i+1).trim();
-				if (hn.equals("Date") || hn.equals("Server") || hn.equals("Last-Modified") || hn.equals("Content-Type"))
-					response.setHeader(hn, ln);
-				if (hn.equals("X-ProcTime"))
-					procTime = ln;
+				switch (hnl) {
+					case "date":
+					case "server":
+					case "last-modified":
+					case "content-type":
+						response.setHeader(hn, ln);
+						break;
+					case "x-proctime":
+						procTime = ln;
+						break;
+					case "content-length":
+						cl = Long.parseLong(ln);
+						break;
+				}
 			}
 		} while (true);
 		response.setHeader("X-ProcTime", procTime + " sshdprx:" + (System.currentTimeMillis()-start));
 
-		po.write(buf, bb.rpos(), avail-bb.rpos());
-		while ((avail = pi.read(buf)) > 0) {
-			po.write(buf, 0, avail);
+		if (cl==null) {
+			po.write(buf, bb.rpos(), avail - bb.rpos());
+			while ((avail = pi.read(buf)) > 0) {
+				po.write(buf, 0, avail);
+			}
+		} else {
+			if (logger.isDebugEnabled())
+				logger.debug ("CL=" + cl + ", blen=" + (avail-bb.rpos()));
+			po.write(buf, bb.rpos(), avail - bb.rpos());
+			cl -= avail - bb.rpos();
+			while (cl > 0) {
+				avail = pi.read(buf);
+				if (avail<=0) break;
+				po.write(buf, 0, avail);
+				cl -= avail;
+			}
 		}
 		pi.close();
-	}
 
-	private static String getLine(ByteArrayBuffer bb) {
-		StringBuilder sb = new StringBuilder();
-		while (bb.available()>0) {
-			char c = (char) (bb.getByte() & 0xff);
-			if (c == '\r') continue;
-			if (c == '\n') break;
-			sb.append(c);
-		}
-		return sb.toString();
-	}
-
-	private static PipedInputStream triggerRequest(SshClientConnectInfo info, HttpServletRequest request) throws Exception {
-		String path = "/";
-
-		StringBuilder sb = new StringBuilder(request.getMethod() + " ");
-		sb.append(path).append(" HTTP/1.0\r\n");
-		sb.append("Host: localhost\r\n");
-		sb.append("Connection: close\r\n");
-		Enumeration<String> hnEnum = request.getHeaderNames();
-		while (hnEnum.hasMoreElements()) {
-			String hn = hnEnum.nextElement();
-			String hnv = request.getHeader(hn);
-			if (hn.equals("User-Agent") || hn.equals("Accept") || hn.equals("Lang") || hn.equals("Content-Type"))
-				sb.append(hn).append(": ").append(hnv).append("\r\n");
-		}
-
-		byte[] body = null;
-		if (request.getMethod().equalsIgnoreCase("POST")) {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			InputStream is = request.getInputStream();
-			byte buf[] = new byte[32768];
-			int read;
-			while ((read = is.read(buf))>0)
-				baos.write(buf, 0, read);
-			body = baos.toByteArray();
-			sb.append("Content-Length: ").append(body.length).append("\r\n");
-		}
-		sb.append("\r\n");
-
-		PipedInputStream pi = new PipedInputStream(102400);
-		Session session = info.session;
-		final ConnectionService service = info.forwarder().getConnectionService();
-		ServletClientChannel channel = new ServletClientChannel(pi,
-				new SshdSocketAddress(request.getRemoteAddr(), request.getRemotePort()), info);
-
-		service.registerChannel(channel);
-		channel.open().addListener(future -> {
-			Throwable t = future.getException();
-			if (t != null) {
-				logger.warn("Failed ({}) to open channel for session={}: {}",
-						t.getClass().getSimpleName(), session.toString(), t.getMessage());
-				logger.debug("sessionCreated(" + session + ") channel=" + channel + " open failure details", t);
-				service.unregisterChannel(channel);
-				// Bad?
-				// channel.close(false);
-			}
-		});
-		byte [] b1;
-		if (body==null) {
-			b1 = sb.toString().getBytes();
-		} else {
-			b1 = sb.toString().getBytes();
-			b1 = ByteBuffer.allocate(b1.length + body.length).put(b1).put(body).array();
-		}
-		Buffer buffer = new ByteArrayBuffer(b1);
-		info.forwarder.messageReceived(info, channel, buffer);
-		channel.addChannelListener(new ChannelListener() {
-			@Override
-			public void channelStateChanged(Channel genericChannel, String hint) {
-				// logger.info("HINT HINT HINT HINT HINT " + hint);
-				if ("SSH_MSG_CHANNEL_EOF".equals(hint))
-					try {
-						channel.close(false);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-			}
-		});
-		return pi;
+		info.freeChannel = ServletClientChannel.openNewChannel(info);
 	}
 
 	/**

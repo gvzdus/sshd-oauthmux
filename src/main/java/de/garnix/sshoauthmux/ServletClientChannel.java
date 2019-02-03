@@ -7,9 +7,12 @@ import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.Closeable;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
+import org.apache.sshd.common.channel.Channel;
+import org.apache.sshd.common.channel.ChannelListener;
 import org.apache.sshd.common.channel.ChannelOutputStream;
 import org.apache.sshd.common.channel.Window;
 import org.apache.sshd.common.forward.ForwardingTunnelEndpointsProvider;
+import org.apache.sshd.common.session.ConnectionService;
 import org.apache.sshd.common.session.Session;
 import org.apache.sshd.common.util.ValidateUtils;
 import org.apache.sshd.common.util.buffer.Buffer;
@@ -27,18 +30,21 @@ class ServletClientChannel extends AbstractClientChannel implements ForwardingTu
 	private final ClientChannelPendingMessagesQueue messagesQueue;
 	private SshdSocketAddress tunnelEntrance;
 	private SshdSocketAddress tunnelExit;
-	private PipedOutputStream pipedOutputStream;
+	private PipedOutputStream pipedOutputStream = null;
 	//private SshClientConnectInfo info;
 
 	private static final String TYPESTR = "forwarded-tcpip";
 	private static Logger log = LoggerFactory.getLogger(ServletClientChannel.class);
 
-	ServletClientChannel(PipedInputStream pi, SshdSocketAddress remote, SshClientConnectInfo info) throws IOException {
+	ServletClientChannel(SshdSocketAddress remote, SshClientConnectInfo info) throws IOException {
 		super(TYPESTR);
 		this.tunnelEntrance = remote;
 		this.tunnelExit = new SshdSocketAddress(info.serverLocalEndpoint, info.serverLocalPort);
-		this.pipedOutputStream = new PipedOutputStream(pi);
 		this.messagesQueue = new ClientChannelPendingMessagesQueue(this);
+	}
+
+	public void setPipedInputStream(PipedInputStream pi) throws IOException {
+		this.pipedOutputStream = new PipedOutputStream(pi);
 	}
 
 	OpenFuture getOpenFuture() {
@@ -54,6 +60,7 @@ class ServletClientChannel extends AbstractClientChannel implements ForwardingTu
 	ClientChannelPendingMessagesQueue getPendingMessagesQueue() {
 		return messagesQueue;
 	}
+
 
 	@Override
 	public synchronized OpenFuture open() throws IOException {
@@ -93,11 +100,12 @@ class ServletClientChannel extends AbstractClientChannel implements ForwardingTu
 	@Override
 	protected Closeable getInnerCloseable() {
 //		log.info("getInnerCloseable CALLED");
-		try {
-			pipedOutputStream.close();
-		} catch (IOException e) {
-			log.warn("Exception on getInnerClosable");
-		}
+		if (pipedOutputStream!=null)
+			try {
+				pipedOutputStream.close();
+			} catch (IOException e) {
+				log.warn("Exception on getInnerClosable");
+			}
 		return super.getInnerCloseable();
 /*
         return builder()
@@ -145,7 +153,43 @@ class ServletClientChannel extends AbstractClientChannel implements ForwardingTu
 		Buffer buf = ByteArrayBuffer.getCompactClone(data, off, (int) len);
 		Window wLocal = getLocalWindow();
 		wLocal.consumeAndCheck(len);
-		pipedOutputStream.write(buf.array());
-//		System.out.println (">>>>>>>>>>>>>>>>>>>\n" + new String(buf.array()));
+		if (pipedOutputStream!=null)
+			pipedOutputStream.write(buf.array());
+	}
+
+	static ServletClientChannel openNewChannel(SshClientConnectInfo info) throws IOException {
+		final ConnectionService service = info.forwarder().getConnectionService();
+
+		ServletClientChannel channel = new ServletClientChannel(new SshdSocketAddress("localhost", 1234), info);
+		service.registerChannel(channel);
+		channel.open().addListener(future -> {
+			Throwable t = future.getException();
+			if (t != null) {
+				log.warn("Failed ({}) to open channel for session={}: {}",
+						t.getClass().getSimpleName(), info.session.toString(), t.getMessage());
+				log.debug("sessionCreated(" + info.session + ") channel=" + channel + " open failure details", t);
+				service.unregisterChannel(channel);
+				if (info.freeChannel == channel)
+					info.freeChannel = null;
+				// Bad?
+				// channel.close(false);
+			}
+		});
+		channel.addChannelListener(new ChannelListener() {
+			@Override
+			public void channelStateChanged(Channel genericChannel, String hint) {
+				// logger.info("HINT HINT HINT HINT HINT " + hint);
+				if ("SSH_MSG_CHANNEL_EOF".equals(hint)) {
+					if (info.freeChannel == channel)
+						info.freeChannel = null;
+					try {
+						channel.close(false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		return channel;
 	}
 }

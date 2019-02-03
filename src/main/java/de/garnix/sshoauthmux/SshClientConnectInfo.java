@@ -1,5 +1,6 @@
 package de.garnix.sshoauthmux;
 
+import org.apache.sshd.common.channel.Channel;
 import org.apache.sshd.common.channel.ChannelPipedInputStream;
 import org.apache.sshd.common.session.Session;
 import org.apache.sshd.server.session.ServerSession;
@@ -21,6 +22,7 @@ public class SshClientConnectInfo {
 	public int serverLocalPort;
 	ServletClientForwarder forwarder;
 	PseudoShellCommand pseudoShell;
+	ServletClientChannel freeChannel;
 	Integer uid;
 	private static final Logger logger = LoggerFactory.getLogger(SshClientConnectInfo.class);
 
