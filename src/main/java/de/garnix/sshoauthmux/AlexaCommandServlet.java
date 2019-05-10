@@ -137,7 +137,7 @@ public class AlexaCommandServlet extends HttpServlet {
 		ByteArrayBuffer bb = new ByteArrayBuffer(buf);
 
 		if (bb.available()==0 || avail<=0) {
-			response.setStatus(500);
+			response.setStatus(409);
 			response.getWriter().print("No bytes received - server unreachable");
 			return;
 		}

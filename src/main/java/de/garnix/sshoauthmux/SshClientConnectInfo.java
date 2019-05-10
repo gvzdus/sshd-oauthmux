@@ -76,8 +76,15 @@ public class SshClientConnectInfo {
 		return list.toArray(new SshClientConnectInfo[list.size()]);
 	}
 
+	/**
+	 * Closes Pseudoshell sessions (the normal SSH connection where an EOF has been received
+	 * from the client.
+	 * Also cleans up activeMap from sessions that have been closed to avoid memory leaks
+	 */
 	public static void closeEofSessions() {
-		LinkedList<SshClientConnectInfo> list = new LinkedList<>();
+		LinkedList<SshClientConnectInfo> eofList = new LinkedList<>();
+		LinkedList<SshClientConnectInfo> closedList = new LinkedList<>();
+
 		try {
 			synchronized (activeMap) {
 				for (Map.Entry<Object, SshClientConnectInfo> me : activeMap.entrySet())
@@ -91,27 +98,37 @@ public class SshClientConnectInfo {
 							int avail = cpis.available();
 							if (avail<0) {
 								// EOF received
-								list.add(i);
+								eofList.add(i);
 							} else if (avail>0) {
 								int c = cpis.read();
 								if (logger.isDebugEnabled())
 									logger.debug("Read " + Integer.toHexString(c) + " from SSH");
 								if (c==0x03 || c==0x04) {
 									// Ctrl-C, Ctrl-D
-									list.add(i);
+									eofList.add(i);
 								}
 							}
 						}
+						Session s = (Session) me.getKey();
+						if (s.isClosed() && s.isClosing())
+							closedList.add(i);
 					}
 			}
 		} catch (Exception e) {
 			logger.warn("Got exception " + e, e);
 		}
-		for (SshClientConnectInfo i : list) {
+		for (SshClientConnectInfo i : eofList) {
 			if (i.session!=null) {
 				logger.info ("Closing session " + Integer.toHexString(i.getUid()!=null ? i.getUid() : 0) + ", " +
 						i.session.toString() + " by client-EOF" );
 				i.session.close(true);
+			}
+		}
+		for (SshClientConnectInfo i : closedList) {
+			if (i.session!=null) {
+				logger.info ("Removing session " + Integer.toHexString(i.getUid()!=null ? i.getUid() : 0) + ", " +
+						i.session.toString() + " from activeMap - isClosed" );
+				removeSession(i.session);
 			}
 		}
 	}
