@@ -4,7 +4,6 @@ import org.aeonbits.owner.ConfigFactory;
 import org.aeonbits.owner.event.ReloadEvent;
 import org.aeonbits.owner.event.RollbackBatchException;
 import org.aeonbits.owner.event.TransactionalReloadListener;
-import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,13 @@ public class StartStop implements ServletContextListener {
 				log.info ("beforeReload");
 		    }
 		});
+		//System.out.println ("Message 1 to stdout");
+		//System.err.println ("Message 1 to stderr");
 		setLogLevel();
+		log.info ("INFO level test");
+		log.debug("DEBUG level test");
+		// System.out.println ("Message 2 to stdout");
+		// System.err.println ("Message 2 to stderr");
 
 		try {
 			// TODO: Make this configurable
@@ -83,6 +88,9 @@ public class StartStop implements ServletContextListener {
 
 	public static void setLogLevel() {
 		String logLevel = config.logLevel();
+
+		System.out.println ("StartStop: loglevel " + logLevel);
+		/*
 		org.apache.log4j.Logger root = org.apache.log4j.Logger.getRootLogger()     ;
 		boolean logLevelRecognized = true;
 		if ("DEBUG".equalsIgnoreCase(logLevel)) {
@@ -98,9 +106,12 @@ public class StartStop implements ServletContextListener {
 		} else {
 			logLevelRecognized = false;
 		}
+
+
 		if (logLevelRecognized)
 			log.info("LogLevel changed to " + logLevel);
 		else
 			log.warn("LogLevel '" + logLevel + "' is invalid");
+		*/
 	}
 }

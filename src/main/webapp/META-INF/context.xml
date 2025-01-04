@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/backendbox">
+<Context path="/" swallowOutput="true">
 
 <!--
   <Parameter name="configDir" value="/opt/web/tomcat/webmini/conf/betterbox"/>
