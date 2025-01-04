@@ -32,6 +32,7 @@ class ServletClientChannel extends AbstractClientChannel implements ForwardingTu
 	private SshdSocketAddress tunnelExit;
 	private PipedOutputStream pipedOutputStream = null;
 	//private SshClientConnectInfo info;
+	private static Object lock;
 
 	private static final String TYPESTR = "forwarded-tcpip";
 	private static Logger log = LoggerFactory.getLogger(ServletClientChannel.class);

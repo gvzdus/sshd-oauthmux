@@ -4,7 +4,9 @@ import org.apache.sshd.common.session.Session;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
+import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
+import org.apache.sshd.server.command.CommandFactory;
 import org.apache.sshd.server.session.ServerSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +60,7 @@ class ControlCommand implements Command, SessionAware {
 	private static final Pattern keyhash_pattern = Pattern.compile(".*\\s+keyhash=([A-Fa-f0-9]+)( .*|$)", Pattern.CASE_INSENSITIVE);
 
 	@Override
-	public void start(Environment environment) throws IOException {
+	public void start(ChannelSession cs, Environment environment) throws IOException {
 		StringBuilder sbErr = new StringBuilder();
 		StringBuilder sbOut = new StringBuilder();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -129,7 +131,7 @@ class ControlCommand implements Command, SessionAware {
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy(ChannelSession cs) throws Exception {
 	}
 
 	@Override
@@ -138,9 +140,9 @@ class ControlCommand implements Command, SessionAware {
 		this.info = SshClientConnectInfo.getBySession(session);
 	}
 
-	static class Factory implements org.apache.sshd.server.command.CommandFactory {
+	static class Factory implements CommandFactory {
 		@Override
-		public Command createCommand(String command) {
+		public Command createCommand(ChannelSession channelSession, String command) throws IOException {
 			return new ControlCommand(command);
 		}
 	}

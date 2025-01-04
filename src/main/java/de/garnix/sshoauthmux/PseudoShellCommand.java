@@ -4,8 +4,10 @@ import org.apache.sshd.common.session.Session;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
+import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
 import org.apache.sshd.server.session.ServerSession;
+import org.apache.sshd.server.shell.ShellFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,13 +25,14 @@ class PseudoShellCommand implements Command, SessionAware {
 
 	private static final Logger log = LoggerFactory.getLogger(PseudoShellCommand.class);
 
-	private PseudoShellCommand(String s) {
+	private PseudoShellCommand(Session session, String s) {
+		this.session = session;
 		if (log.isDebugEnabled())
 			log.debug("New PseudoShellCommand called with " + s);
 	}
 
 	@Override
-	public void start(Environment env) throws IOException {
+	public void start(ChannelSession cs, Environment env) throws IOException {
 		SshClientConnectInfo info = SshClientConnectInfo.getBySession(session);
 		int id = Database.searchClientCert(info.clientKey);
 		if (id==0) {
@@ -62,8 +65,11 @@ class PseudoShellCommand implements Command, SessionAware {
 		}
 		if (log.isDebugEnabled())
 			log.debug("PseudoShell started on " + session);
+		/*
 		env.addSignalListener(signal ->
 				log.info ("SIGNAL received: " + signal.getNumeric() + " = " + signal.toString()));
+
+		 */
 		if (log.isTraceEnabled())
 			for (Map.Entry<String,String> me : env.getEnv().entrySet()) {
 				log.trace ("ENV: " + me.getKey() + "=" + me.getValue());
@@ -71,10 +77,10 @@ class PseudoShellCommand implements Command, SessionAware {
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy(ChannelSession cs) throws Exception {
 		if (log.isDebugEnabled())
 			log.debug("PseudoShell destroyed on " + session);
-		SshClientConnectInfo.removeSession(session);
+		SshClientConnectInfo.removeSession(cs.getSession());
 		if (exitCallback!=null)
 			exitCallback.onExit(0, "Never lived");
 	}
@@ -113,10 +119,10 @@ class PseudoShellCommand implements Command, SessionAware {
 	}
 
 
-	public static class Factory implements org.apache.sshd.common.Factory<Command> {
+	public static class Factory implements ShellFactory {
 		@Override
-		public Command create() {
-			return new PseudoShellCommand ("CREATE");
+		public Command createShell(ChannelSession cs) {
+			return new PseudoShellCommand (cs.getSession(), "CREATE");
 		}
 	}
 }

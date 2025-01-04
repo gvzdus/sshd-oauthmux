@@ -10,6 +10,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -253,7 +254,7 @@ public class Database {
 			ByteBuffer bb2;
 
 			bb2 = ByteBuffer.allocate(8).putLong(System.currentTimeMillis());
-			bb2.flip();
+			((Buffer) bb2).flip();
 			r = jedis.hset(hkey, KEY_LAST_USAGE, bb2.array());
 			r = jedis.hset(hkey, KEY_CREATED, bb2.array());
 			if (log.isDebugEnabled())
@@ -337,7 +338,7 @@ public class Database {
 
 	private static byte[] getDigest(long secret) {
 		ByteBuffer bb = ByteBuffer.allocate(8).putLong(secret);
-		bb.flip();
+		((Buffer)bb).flip();
 		Digest digest = BuiltinDigests.sha256.create();
 		try {
 			digest.init();
@@ -355,25 +356,25 @@ public class Database {
 
 	private static byte[] getPublicKeyHCKey(int hashcode) {
 		ByteBuffer bb = ByteBuffer.allocate(6).putShort((short) 0x1234).putInt(hashcode);
-		bb.flip();
+		((Buffer)bb).flip();
 		return bb.array();
 	}
 
 	private static byte[] getPublicKeyHCCountKey(int hashcode) {
 		ByteBuffer bb = ByteBuffer.allocate(6).putShort((short) 0x4731).putInt(hashcode);
-		bb.flip();
+		((Buffer)bb).flip();
 		return bb.array();
 	}
 
 	private static byte[] getPwHashKey(byte[] hash) {
 		ByteBuffer bb = ByteBuffer.allocate(36).putShort((short) 0x1210).put(hash);
-		bb.flip();
+		((Buffer)bb).flip();
 		return bb.array();
 	}
 
 	private static byte[] getTokenKey(long atoken) {
 		ByteBuffer bb = ByteBuffer.allocate(10).putShort((short) 0x623A).putLong(atoken);
-		bb.flip();
+		((Buffer)bb).flip();
 		return bb.array();
 	}
 
