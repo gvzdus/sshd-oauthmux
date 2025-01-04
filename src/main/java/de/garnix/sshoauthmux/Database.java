@@ -1,8 +1,8 @@
 package de.garnix.sshoauthmux;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.sshd.common.digest.BuiltinDigests;
 import org.apache.sshd.common.digest.Digest;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.BinaryJedis;
